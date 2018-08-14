@@ -1,21 +1,17 @@
 <template>
-    <div class="song-list">
-        <ul>
-            <li v-for="(song, index) in songs"
-                :key="song.id"
-                class="item"
-                @click="selectItem(song, index)">
-                <!-- <div class="rank" v-show="rank">
-         <span :class="getRankCls(index)">{{getRankText(index)}}</span>
-       </div> -->
-                <!-- <p class="count">{{index + 1}}</p> -->
-                <div class="content">
-                    <h2 class="name">{{song.name}}</h2>
-                    <p class="desc">{{getDesc(song)}}</p>
-                </div>
-            </li>
-        </ul>
-    </div>
+  <div class="song-list">
+    <ul>
+      <li v-for="(song, index) in songs"
+          :key="song.id"
+          class="item"
+          @click="selectItem(song, index)">
+        <div class="content">
+          <h2 class="name">{{song.name}}</h2>
+          <p class="desc">{{getDesc(song)}}</p>
+        </div>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>
@@ -46,7 +42,6 @@ export default {
 <style lang="scss" scoped>
 @import '~common/scss/variable';
 @import '~common/scss/mixin';
-
 .song-list {
   .item {
     display: flex;
@@ -65,19 +60,13 @@ export default {
       line-height: 20px;
       overflow: hidden;
       .name {
-        // margin-top: 4px;
-        // width: 80%;
         @include no-wrap();
         color: $color-text;
       }
       .desc {
         @include no-wrap();
-        // margin-top: 3px;
         margin-top: 4px;
         color: $color-text-d;
-        // width: 80%;
-        // font-size: 12px;
-        // color: $color-text-g;
       }
     }
   }

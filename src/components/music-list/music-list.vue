@@ -2,8 +2,8 @@
   <div class="music-list">
     <div class="back"
          @click="back">
-      <span>后退</span>
       <i class="icon-back"></i>
+      <!-- <i class="icon-back"></i> -->
     </div>
     <h1 class="title"
         v-html="title"></h1>
@@ -14,6 +14,7 @@
            v-show="songs.length > 0"
            ref="playBtn">
         <div class="play">
+          <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
       </div>
@@ -30,7 +31,8 @@
             class="list"
             ref="list">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs"
+                   @select="selectItem"></song-list>
       </div>
       <div class="loading-container"
            v-show="!songs.length">
@@ -45,6 +47,7 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { prefixStyle } from 'common/js/dom'
+import { mapActions } from 'vuex'
 
 const transform = prefixStyle('transform')
 const backrop = prefixStyle('backrop-filter')
@@ -94,7 +97,17 @@ export default {
     },
     back () {
       this.$router.back()
-    }
+    },
+    selectItem (item, index) {
+      console.log('父组件', item, index);
+      this.selectPlay({
+        list: this.songs,
+        index: index
+      })
+    },
+    ...mapActions([
+      'selectPlay'
+    ])
   },
   watch: {
     scrollY (newY) {

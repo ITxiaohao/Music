@@ -16,10 +16,11 @@
               v-for="item in group.items"
               :key="item.avatar"
               class="list-group-item">
-            <!-- <img class="avatar" v-lazy="item.avatars"> -->
-            <!-- TODO: 图片懒加载有的图片加载不出来 -->
             <img class="avatar"
-                 :src="item.avatars">
+                 v-lazy="item.avatars">
+            <!-- TODO: 图片懒加载有的图片加载不出来 -->
+            <!-- <img class="avatar"
+                 :src="item.avatars"> -->
             <span class="name">{{item.name}}</span>
           </li>
         </ul>

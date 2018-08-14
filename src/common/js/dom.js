@@ -29,6 +29,7 @@ export function getData(el, name, val) {
   }
 }
 
+// 根据不同浏览器添加权限
 let elementStyle = document.createElement('div').style
 
 let vendor = (() => {

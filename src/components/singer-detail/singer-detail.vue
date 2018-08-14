@@ -2,17 +2,14 @@
   <transition name="slide">
     <music-list :songs="songs"
                 :title="title"
-                :bg-image="bgImage"></music-list>
-    <!-- <div class="singer-detail">
-
-    </div> -->
+                :bg-image="bgImage">
+    </music-list>
   </transition>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import { getSingerDetail } from 'api/singer'
-// import { ERR_OK } from 'common/js/config'
 import { createSong } from 'common/js/song'
 import MusicList from 'components/music-list/music-list'
 
@@ -38,7 +35,6 @@ export default {
     console.log(this.singer);
   },
   methods: {
-
     _getDetail () {
       // 判断有没有 id 处理边界情况，如果没有就跳转会 singer 页面
       if (!this.singer.id) {
