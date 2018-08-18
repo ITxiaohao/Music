@@ -1,7 +1,11 @@
 <template>
   <div class="player"
        v-show="playlist.length > 0">
-    <transition name="normal">
+    <transition name="normal"
+                @enter="enter"
+                @afterEnter="afterEnter"
+                @leave="leave"
+                @afterLeave="afterLeave">
       <div class="normal-player"
            v-show="fullScreen">
         <div class="background">
@@ -21,8 +25,10 @@
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd-wrapper">
-              <div class="cd">
+            <div class="cd-wrapper"
+                 ref="cdWrapper">
+              <div class="cd"
+                   :class="cdCls">
                 <img class="image"
                      :src="currentSong.image">
               </div>
@@ -38,7 +44,8 @@
               <i class="icon-prev"></i>
             </div>
             <div class="icon i-center">
-              <i class="icon-play"></i>
+              <i @click="togglePlaying"
+                 :class="playIcon"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-next"></i>
@@ -57,6 +64,7 @@
         <div class="icon">
           <img height="40"
                width="40"
+               :class="cdCls"
                :src="currentSong.image">
         </div>
         <div class="text">
@@ -66,23 +74,43 @@
              v-html="currentSong.singer"></p>
         </div>
         <div class="control">
+          <!-- 关闭冒泡事件 -->
+          <i @click.stop="togglePlaying"
+             :class="miniIcon"></i>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio ref="audio"
+           :src="currentSong.url"></audio>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from 'vuex'
+import animations from 'create-keyframe-animation'
+import { prefixStyle } from 'common/js/dom'
+
+const transform = prefixStyle('transform')
+
 export default {
   computed: {
+    cdCls () {
+      return this.playing ? 'play' : 'play pause'
+    },
+    playIcon () {
+      return this.playing ? 'icon-pause' : 'icon-play'
+    },
+    miniIcon () {
+      return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
     ...mapGetters([
       'playlist',
       'fullScreen',
-      'currentSong'
+      'currentSong',
+      'playing'
     ])
   },
   methods: {
@@ -93,10 +121,90 @@ export default {
     open () {
       this.setFullScreen(true)
     },
+    enter (el, done) {
+      // 计算偏移值
+      const { x, y, scale } = this._getPosAndScale()
+      let animation = {
+        0: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        },
+        60: {
+          transform: `translate3d(0,0,0) scale(1.1)`
+        },
+        100: {
+          transform: `translate3d(0,0,0) scale(1)`
+        }
+      }
+
+      // 注册
+      animations.registerAnimation({
+        name: 'move',
+        animation,
+        presets: {
+          duration: 400, // 设置动画的间隔
+          easing: 'linear' // 设置动画的缓动
+        }
+      })
+
+      // 运行
+      animations.runAnimation(this.$refs.cdWrapper, 'move', done) // done 函数为回调，执行完后执行 done
+    },
+    afterEnter () {
+      animations.unregisterAnimation('move')
+      // 清空样式
+      this.$refs.cdWrapper.style.animation = ''
+    },
+    leave (el, done) {
+      this.$refs.cdWrapper.style.transition = 'all 0.4s'
+      const { x, y, scale } = this._getPosAndScale()
+      this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
+      // 添加监听事件，当 transition 结束的时候，执行 done 回调函数，就会执行到 afterLeave
+      this.$refs.cdWrapper.addEventListener('transitionend', done)
+    },
+    afterLeave () {
+      this.$refs.cdWrapper.style.transition = ''
+      this.$refs.cdWrapper.style[transform] = ''
+    },
+    togglePlaying () {
+      this.setPlayingState(!this.playing)
+    },
+    _getPosAndScale () {
+      const targetWidth = 40 // 小圆的宽度
+      const paddingLeft = 40 // 小圆的圆心到左侧边界的距离
+      const paddingBottom = 30 // 小圆的圆心到底部边界的距离
+
+      const paddingTop = 80 // 大圆的圆心到顶部边界的距离
+      const width = window.innerWidth * 0.8 // 大圆的宽度
+      const scale = targetWidth / width // 缩放比例，小圆的宽度 / 大圆的宽度
+      const x = -(window.innerWidth / 2 - paddingLeft) // 两个圆心点的偏移值 x
+      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom // 两个圆心点的偏移值 y
+      return {
+        x,
+        y,
+        scale
+      }
+    },
     // 引入 mutations 去修改 state
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE'
     })
+  },
+  watch: {
+    // 监听，当当前歌曲数据都有了以后开始播放，这里用了 $nextTick
+    currentSong () {
+      // 延时
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    },
+    playing (newPlaying) {
+      const audio = this.$refs.audio
+      // 控制歌曲播放 暂停
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 }
 </script>
